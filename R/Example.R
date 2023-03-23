@@ -113,6 +113,12 @@ Pay <- importTab("RData/Pay.csv")
 Inflation <- importTab("RData/Inflation.csv")
 NROC <- importTab("RData/NROC.csv")
 
-calcPay2002(Pay["2008", "FY1"], 0.5)
-calcPay2016(Pay["2022", "FY1"], 5, 10, 4)
-
+# Calculate gross pay for a couple of years
+inflationMulti <- Inflation["2008", "RPI"] / Inflation["2022", "RPI"]
+f1.2008 <- calcPay2002(Pay["2008", "FY1"], 0.5)
+f1.2022 <- calcPay2016(Pay["2022", "FY1"], 8, 10, 4) * inflationMulti
+percent <- (1 - (f1.2022/f1.2008)) * 100
+# How much has an F1's pay fallen since 2022, when adjusted for inflation%
+paste(format(round(percent, 1), places = 1),
+      "%",
+      sep="")
