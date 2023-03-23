@@ -66,6 +66,50 @@ importTab <- function(fname){
   return(t2)
 }
 
+getWeekendMulti <- function(weekends){
+  # Brief helper function to return the weekend multiplier for a given
+  # Weekend frequency; e.g. for 1:4 weekends, weekends = 4, returns 0.06
+  weekendMulti <- c(0.15,  0.1, 0.075, 0.06, 0.05, 0.04, 0.03, 0)
+  cutoffs      <- c(   2,    3,     4,    5,    6,    7,    8)
+  return(weekendMulti[findInterval(weekends, cutoffs, left.open = TRUE) +1])
+}
+
+calcPay2002 <- function(base, banding){
+  # Calculates pay under the 2002 contract
+  # base    (numeric) - base pay
+  # banding (numeric) - banding multiplier (e.g. for 50%, 0.50)
+  # Unbanded:       <40h/wk                      - 0.0
+  # 1A:  >40h but <= 48h/wk,     most antisocial - 0.5
+  # 1B:  >40h but <= 48h/wk, moderate antisocial - 0.4
+  # 1C:  >40h but <= 48h/wk,    least antisocial - 0.2
+  # 2A:  >48h but <= 56h/wk,     most antisocial - 0.8
+  # 2B:  >48h but <= 56h/wk,    least antisocial - 0.5
+  #  3:  >56h or not achieving rest requirements - 1.0
+  # You may have noticed that it is undefined which band a practitioner working
+  # exactly 40h/wk should fall into. This appears to be how the contract is
+  # worded (pp 15-18, TCS 2002 version 10, March 2013).
+  # The exact banding definitions depend on the on-call and weekend frequencies,
+  # as well as the proportion of hours.
+  # However, anecdotally most posts on the 2002 contract attracted 1A or 2B
+  # banding supplements.
+  return(base * banding)
+}
+
+calcPay2016 <- function(base, addHours, supHours, weekends, nroc = 0){
+  # Calculates pay under the 2016 contact
+  # base     (numeric) - base pay
+  # addHours (numeric) - additional total weekly hours beyond 40/wk 
+  # supHours (numeric) - number of weekly unsociable hours at enhanced rate
+  # nroc     (numeric) - NROC supplement, if any, or 0 (usually 0)
+  # weekends (numeric) - 1:frequency of weekends (e.g. for 1:4 weekends, 4)
+  addHoursMulti  <- 1/40 * addHours           # additional hours fraction
+  supHoursMulti  <- 1/40 * 0.37 * supHours    # enhanced rate is 1.37 time
+  weekendMulti   <- getWeekendMulti(weekends) # Look up the weekend multiplier
+  pay <- base * (1 + addHoursMulti + supHoursMulti + weekendMulti)
+  return(pay)
+}
+
 Pay <- importTab("RData/Pay.csv")
 Inflation <- importTab("RData/Inflation.csv")
 NROC <- importTab("RData/NROC.csv")
+
