@@ -59,10 +59,10 @@ importTab <- function(fname){
 # | Title A |       1 |       4 | ...
 # | Title B |       2 |       5 | ...
 #     ...       ...       ...
-  t1 <- read_csv(fname, col_names = FALSE, show_col_types = FALSE)
-  t2 <- data.table::transpose(t1)[-1,-1]
-  rownames(t2) <- t1[1,-1]
-  colnames(t2) <- data.table::transpose(t1[-1,1])
+  t1 <- read_csv(fname, show_col_types = FALSE)
+  t2 <- data.table::transpose(t1[,-1])
+  colnames(t2) <- unlist(t1[,1])
+  rownames(t2) <- colnames(t1)[-1]
   return(t2)
 }
 
