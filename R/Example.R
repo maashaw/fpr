@@ -105,11 +105,14 @@ calcPay2016 <- function(base, addHours, supHours, weekends, nroc = 0){
   addHoursMulti  <- 1/40 * addHours           # additional hours fraction
   supHoursMulti  <- 1/40 * 0.37 * supHours    # enhanced rate is 1.37 time
   weekendMulti   <- getWeekendMulti(weekends) # Look up the weekend multiplier
-  pay <- base * (1 + addHoursMulti + supHoursMulti + weekendMulti)
+  pay <- base * (1 + addHoursMulti + supHoursMulti + weekendMulti) + nroc
   return(pay)
 }
 
 Pay <- importTab("RData/Pay.csv")
 Inflation <- importTab("RData/Inflation.csv")
 NROC <- importTab("RData/NROC.csv")
+
+calcPay2002(Pay["2008", "FY1"], 0.5)
+calcPay2016(Pay["2022", "FY1"], 5, 10, 4)
 
