@@ -92,7 +92,7 @@ calcPay2002 <- function(base, banding){
   # as well as the proportion of hours.
   # However, anecdotally most posts on the 2002 contract attracted 1A or 2B
   # banding supplements.
-  return(base * banding)
+  return(base * (1+ banding))
 }
 
 calcPay2016 <- function(base, addHours, supHours, weekends, nroc = 0){
