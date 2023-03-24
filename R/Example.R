@@ -109,6 +109,33 @@ calcPay2016 <- function(base, addHours, supHours, weekends, nroc = 0){
   return(pay)
 }
 
+calcPay <- function(grade, year, banding, addHours, supHours, weekends, nrocNode = 0){
+  # Calculates gross pay for a particular grade in a particular year
+  #   - Grade is a string matching one of the grades in the table's labels, or an
+  #     index into the table (e.g. "FY1" or 1).
+  #   - Banding is a banding multiplier and is applied if the post falls under the
+  #     2002 contract (e.g. year is <= 2016)
+  # The following are considered if the post falls under the 2016 contract
+  #   (e.g. the year is > 2016)
+  #   - addHours is a number representing the additional hours per week over 40
+  #   - supHours is a number representing the number of weekly hours attracting
+  #     enhanced rates
+  #   - weekends is a number representing the weekend frequency (e.g. 1:4 -> 4)
+  #   - nrocNode is a number representing the nodal point for non-resident on-calls
+  #     NB this is different from the calcPay2016, which asks for a cash value
+  #     whereas this function will look it up for you in the NROC table.
+  # Year is an integer in the range 2007:2022
+  base <- Pay[as.character(year), grade]
+  nrocPay <- 0
+  if(year <= 2016){
+    return(calcPay2002(base, banding))
+  }
+  else if (nrocNode > 0){
+    nrocPay <- NROC[as.character(year), nrocNode]
+  }
+  return(calcPay2016(base, addHours, supHours, weekends, nrocPay))
+}
+
 Pay <- importTab("RData/Pay.csv")
 Inflation <- importTab("RData/Inflation.csv")
 NROC <- importTab("RData/NROC.csv")
@@ -116,9 +143,8 @@ NROC <- importTab("RData/NROC.csv")
 # Calculate gross pay for a couple of years
 inflationMulti <- Inflation["2008", "RPI"] / Inflation["2022", "RPI"]
 f1.2008 <- calcPay2002(Pay["2008", "FY1"], 0.5)
-f1.2022 <- calcPay2016(Pay["2022", "FY1"], 8, 10, 4) * inflationMulti
+f1.2022 <- calcPay2016(Pay["2022", "FY1"], 5, 10, 4) * inflationMulti
+
+# How much has an F1's pay fallen since 2022, when adjusted for inflation?
 percent <- (1 - (f1.2022/f1.2008)) * 100
-# How much has an F1's pay fallen since 2022, when adjusted for inflation%
-paste(format(round(percent, 1), places = 1),
-      "%",
-      sep="")
+paste(format(round(percent, 1), places = 1), "%", sep="")
