@@ -136,6 +136,25 @@ calcPay <- function(grade, year, banding, addHours, supHours, weekends, nrocNode
   return(calcPay2016(base, addHours, supHours, weekends, nrocPay))
 }
 
+inflate <- function(baseYear, cashYear, value, metric){
+  # Calculates the inflation-adjusted value of money which is paid in cashYear
+  # in the value of baseYear money; e.g. if I'm paid £10 in 2008, how much would
+  # that be worth in 2022, using the RPI metric (about £16)
+  # baseYear is an integer in the range 2007:2022 - which year's money do you
+  #   want to express the equivalent value in?
+  # cashYear is an integer in the range 2007:2022 - which year's money is the
+  #   input value expressed in?
+  # value is the sum of money in the cashYear
+  # metric is a string referencing a column label in 'Inflation'
+  #  - "RPI" uses the ONS's Retail Price Index measure of inflation
+  #  - "CPI" uses the ONS's Consumer Price Index measure of inflation
+  #  - "Freddo" uses the value of a freddo over time as a single-item basket of
+  #      goods for a measure of inflation. Like RPI, but Principally for 
+  #      illustration or humerous effect.
+  inflationMulti <- Inflation[as.character(baseYear), metric] / Inflation[as.character(cashYear), metric]
+  return(inflationMulti * value)
+}
+
 Pay <- importTab("RData/Pay.csv")
 Inflation <- importTab("RData/Inflation.csv")
 NROC <- importTab("RData/NROC.csv")
@@ -143,7 +162,7 @@ NROC <- importTab("RData/NROC.csv")
 # Calculate gross pay for a couple of years
 inflationMulti <- Inflation["2008", "RPI"] / Inflation["2022", "RPI"]
 f1.2008 <- calcPay2002(Pay["2008", "FY1"], 0.5)
-f1.2022 <- calcPay2016(Pay["2022", "FY1"], 5, 10, 4) * inflationMulti
+f1.2022 <- inflate(2008, 2022, calcPay2016(Pay["2022", "FY1"], 5, 10, 4), "RPI")
 
 # How much has an F1's pay fallen since 2022, when adjusted for inflation?
 percent <- (1 - (f1.2022/f1.2008)) * 100
