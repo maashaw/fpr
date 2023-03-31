@@ -214,13 +214,18 @@ payGross.2022 <- tabApply(payGross, tabInflate, c(2022, "RPI"))
 payGross.2022.DF <- tabApply(payGross.2022, tabDF, out="DF")
 
 colnames(payGross.2022.DF) <- c("grade", "year", "pay")
-payGross.2022.DF$grade <- factor(payGross.2022.DF$grade, levels = colnames(Pay))
+payGross.2022.DF$grade <- factor(payGross.2022.DF$grade, levels = rev(colnames(Pay)))
+
+#+ fig.width = 8, fig.height = 8, dpi = 300
 
 ggplot(data=payGross.2022.DF, aes(x=year, y=pay, group=grade)) +
   geom_line(aes(color=grade)) +
   scale_y_continuous(name = "Gross Pay (Adjusted to 2022£ by RPI Index)", labels = scales::comma) +
   scale_x_discrete(name = "Year") +
+  labs(color = "Grade") +
   ggtitle("Doctors' Pay: 2007 - 2022") +
+  annotate(geom = "text", x= '2018', y = -Inf, label = "0.5 banding / 45h weekly with 10h unsociable and 1:4 weekends", size = 3, color='grey', vjust = -0.5) +
   annotate(geom = "text", x = '2017', y = 95000, label = "New Contract", angle=90, vjust = -0.5 ) +
+  annotate(geom = "rect", xmin = '2016', xmax = '2017', ymin = -Inf, ymax = Inf, fill = 'orange', alpha = 0.1) +
   geom_vline(xintercept = '2017', color = 'orange') +
   theme_minimal() 
