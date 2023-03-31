@@ -19,8 +19,10 @@ This repo pulls together a number of data sources to illustrate changes to docto
   - ### Analyses:
     - R:
       - Example: An example script that just imports the data products from RData. Also includes some example RMarkdown for compiling reports.
+      - Graphs: Generates some graphs illustrating doctors' pay over time
     - Reports:
       - Example: The compiled report produced from the Example File
+      - Graphs: The compiled report produced from the Graphs File
       
 ## Troubleshooting
   - ### Why do I get "File Not Found" when I try to compile the reports:
