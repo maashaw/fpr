@@ -169,19 +169,20 @@ tabApply <- function(tab, f, x = NULL, out = "tab"){
   tab.x <- lengths(tab)[1]  # e.g. cols; Assumes array's rectangular, not ragged
   tab.y <- length(tab)      # e.g. rows;
   outDF <- data.frame()
+  outTab <- tab
   
   # Apologies, this is definitely the C++ way, not the R way
   for(i in 1:tab.y){        # for each column
     for(j in 1:tab.x){      # for each row
       if(out == "tab"){
-        tab[j,i] <- f(tab, j, i, x)
+        outTab[j,i] <- f(tab, j, i, x)
       }
       else if(out == "DF"){
         outDF <- rbind(outDF, f(tab, j, i, x))
       }
     }
   }
-  if(out == "tab"){ return(tab) }
+  if(out == "tab"){ return(outTab)}
   else if(out == "DF"){return(outDF)}
 }
 
@@ -208,6 +209,20 @@ tabDF <- function(tab, j, i, x){
   return(v)
 }
 
+tabDelta <- function(tab, j, i, x){
+  base <- tab[x[1],i]
+  current <- tab[j,i]
+  v <- (current/base) -1
+  if(x[2] == "fraction"){
+    return(v)
+  }
+  else if(x[2] == "multiplier"){
+    return(v+1)
+  }
+  else if(x[2] == "percent")
+  return(v*100)
+}
+
 Pay <- importTab("RData/Pay.csv")
 Inflation <- importTab("RData/Inflation.csv")
 NROC <- importTab("RData/NROC.csv")
@@ -217,12 +232,29 @@ minWage <- data.frame(c(5.52, 5.73, 5.80, 5.93, 6.08, 6.19, 6.31, 6.50, 6.70, 7.
 rownames(minWage) <- c(2007:2022)
 colnames(minWage) <- "minWage"
 
+# this data from the living wage foundation (livingwage.org.uk)
+livingWageLondon <- data.frame(c(7.20, 7.45, 7.60, 7.85, 8.30, 8.55, 8.80, 9.15, 9.40, 9.75, 10.20, 10.55, 10.75, 10.85, 11.05, 11.95))
+rownames(livingWageLondon) <- c(2007:2022)
+colnames(livingWageLondon) <- c("livingWageLondon")
+
+# this data from the living wage foundation (livingwage.org.uk)
+livingWageNational <- data.frame(c(NA, NA, NA, NA, 7.20, 7.45, 7.65, 7.85, 8.25, 8.45, 8.75, 9.00, 9.30, 9.50, 9.90, 10.90))
+rownames(livingWageNational) <- c(2007:2022)
+colnames(livingWageNational) <- c("livingWageLondon")
+
 minWage.2022 <- tabApply(minWage, tabInflate, c(2022, "RPI"))
 minWage.2022.DF <- tabApply(minWage.2022, tabDF, out="DF")
 colnames(minWage.2022.DF) <- c("group", "year", "minWage")
 
-payGross <- tabApply(Pay, tabCalcPay)
+livingWageLondon.2022 <- tabApply(livingWageLondon, tabInflate, c(2022, "RPI"))
+livingWageLondon.2022.DF <- tabApply(livingWageLondon.2022, tabDF, out="DF")
+colnames(livingWageLondon.2022.DF) <- c("group", "year", "livingWageLondon")
 
+livingWageNational.2022 <- tabApply(livingWageNational, tabInflate, c(2022, "RPI"))
+livingWageNational.2022.DF <- tabApply(livingWageNational.2022, tabDF, out="DF")
+colnames(livingWageNational.2022.DF) <- c("group", "year", "livingWageNational")
+
+payGross <- tabApply(Pay, tabCalcPay)
 payGross.2022 <- tabApply(payGross, tabInflate, c(2022, "RPI"))
 payGross.2022.DF <- tabApply(payGross.2022, tabDF, out="DF")
 colnames(payGross.2022.DF) <- c("grade", "year", "pay")
@@ -245,6 +277,13 @@ pay.2022 <- tabApply(Pay, tabInflate, c(2022, "RPI"))
 pay.2022.hourly <- pay.2022 / baseHours
 pay.2022.hourly.DF <- tabApply(pay.2022.hourly, tabDF, out="DF")
 colnames(pay.2022.hourly.DF) <- c("grade", "year", "pay")
+pay.2022.hourly.DF$grade <- factor(pay.2022.hourly.DF$grade, levels = rev(colnames(Pay)))
+
+payGross.2022.change <- tabApply(payGross.2022, tabDelta, c("2008", "percent"))
+payGross.2022.change.DF <- tabApply(payGross.2022.change, tabDF, out="DF")
+colnames(payGross.2022.change.DF) <- c("grade", "year", "pay")
+payGross.2022.change.DF$grade <- factor(payGross.2022.change.DF$grade, levels = rev(colnames(Pay)))
+
 
 #' ## Fig.1: Gross (Pre-Tax) Annual Pay, adjusted to 2022£
 #+ fig.width = 8, fig.height = 8, dpi = 300
@@ -308,16 +347,34 @@ ggplot(data=payGross.2022.hourly.DF, aes(x=year, y=pay)) +
 
 ggplot(data=pay.2022.hourly.DF, aes(x=year, y=pay)) +
   geom_line(aes(group=grade, color=grade)) +
-  scale_y_continuous(name = "Gross Hourly Base Pay (Adjusted to 2022£ by RPI Index)", labels = scales::comma, limits=c(0,35)) +
+  scale_y_continuous(name = "Gross Hourly Base Pay (Adjusted to 2022£ by RPI Index)", labels = scales::comma, limits=c(0,33)) +
   scale_x_discrete(name = "Year") +
   labs(color = "Grade") +
-  ggtitle("Doctors' Base Pay 2007 - 2022: in mean hourly 2022£") +
+  ggtitle("Doctors' Base Pay 2007 - 2022: in hourly 2022£") +
   annotate(geom = "text", x = '2017', y = +Inf, label = "New Contract", angle=90, vjust = -0.5, hjust = 1.2 ) +
   annotate(geom = "rect", xmin = '2016', xmax = '2017', ymin = -Inf, ymax = Inf, fill = 'orange', alpha = 0.1) +
   geom_vline(xintercept = '2017', color = 'orange') +
   geom_area(data=minWage.2022.DF, fill = 'red', alpha=0.2, aes(x=year, y=minWage, group=group)) +
-  geom_line(data=minWage.2022.DF, color = 'red', linetype='dashed',linewidth=0.5, aes(x=year, y=minWage, group=group)) +
-  annotate(geom = "text", x= '2020', y = 8.0, label = "National Minimum Wage", size = 3, color='black', vjust = -0.5) +
+  geom_line(data=minWage.2022.DF, color = 'red2',linewidth=0.8, linetype='dashed', aes(x=year, y=minWage, group=group)) +
+  annotate(geom = "text", x= +Inf, y = 9.46, label = "National Minimum Wage", size = 3, color='red4', vjust = 1, hjust = 1.2) +
+  geom_line(data=livingWageNational.2022.DF, color = 'orangered', linetype='dashed',linewidth=0.5, aes(x=year, y=livingWageNational, group=group)) +
+  annotate(geom = "text", x= +Inf, y = 11.04, label = "National Living Wage", size = 3, color='orangered2', vjust = -0.3, hjust = 1.2) +
+  geom_line(data=livingWageLondon.2022.DF, color = 'orange', linetype='dashed',linewidth=0.5, aes(x=year, y=livingWageLondon, group=group)) +
+  annotate(geom = "text", x= +Inf, y = 12.74, label = "London Living Wage", size = 3, color='orange2', vjust = -0.3, hjust = 1.2) +
   theme_minimal()
 
+#' ## Fig.5: Change in Gross (Pre-Tax) Annual Pay, adjusted to 2022£
+#+ fig.width = 8, fig.height = 8, dpi = 300
 
+ggplot(data=payGross.2022.change.DF, aes(x=year, y=pay, group=grade)) +
+  geom_line(aes(color=grade)) +
+  scale_y_continuous(name = "Change in Gross Annual Pay since 2008 (Inflation Adjusted by RPI Index)", labels = scales::comma, limits=c(-30, 10)) +
+  scale_x_discrete(name = "Year") +
+  labs(color = "Grade") +
+  ggtitle("Change in Doctors' Total Pay 2007 - 2022 (inflation adjusted)") +
+  annotate(geom = "text", x= '2018', y = -Inf, label = "0.5 banding / 45h weekly with 10h unsociable and 1:4 weekends", size = 3, color='grey', vjust = -0.5) +
+  annotate(geom = "text", x = '2017', y = +Inf, label = "New Contract", angle=90, vjust = -0.5, hjust = 1.2 ) +
+  annotate(geom = "rect", xmin = '2016', xmax = '2017', ymin = -Inf, ymax = Inf, fill = 'orange', alpha = 0.1) +
+  geom_vline(xintercept = '2017', color = 'orange') +
+  geom_hline(yintercept = 0) +
+  theme_minimal() 
