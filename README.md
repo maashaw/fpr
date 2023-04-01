@@ -49,6 +49,9 @@ NB The 2002 contract does not directly tie pay to hours worked. While nominally 
 
 In contrast, the 2016 contract explicitly predicates pay on hours worked, and with the abolition of the banding system, base pay was increased while the supplements supplied for unsociable hours were significantly reduced. The overall effect was that total pay was similar, but base pay higher.
 
-![Graph-4](https://user-images.githubusercontent.com/72826751/229305955-41d9d8b8-4b1d-4100-a263-1c9661c45eee.png)
+![Graph-4](https://user-images.githubusercontent.com/72826751/229311541-7f4bae0a-7e74-4d18-8dfc-0baff146d39b.png)
+
+## Fig.5!
+![Graph-5](https://user-images.githubusercontent.com/72826751/229311576-a64b0644-8fe2-4c15-b175-53f0acce17ae.png)
 
       
