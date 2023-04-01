@@ -11,6 +11,10 @@ This repo pulls together a number of data sources to illustrate changes to docto
       - RPI data
     - Pay Circulars:
       - NHS Pay Circulars from 2007 - 2022
+    - Living Wage:
+      - Information from the Living Wage on historical living wage values. Retrieved from Livingwage.org.uk.
+    - House of Commons Library:
+      - Information on current and historic values of the national minimum wage.
   - ### Data Products
     - RData:
       - Pay: Raw base pay values for each grade, year-by-year, from 2007-2022
@@ -27,4 +31,24 @@ This repo pulls together a number of data sources to illustrate changes to docto
 ## Troubleshooting
   - ### Why do I get "File Not Found" when I try to compile the reports:
     Make sure that you set the RMarkdown working directory to mirror the project's working directory. To do this, go into Tools > Global Options > RMarkdown and set "Evaluate chunks in directory:" to "Project"
+    
+    # Graphs
+
+## Fig.1
+![Graph-1](https://user-images.githubusercontent.com/72826751/229305930-5908b2a0-5397-4655-937c-668db2952ed0.png)
+
+## Fig.2
+![Graph-2](https://user-images.githubusercontent.com/72826751/229305948-8f780221-fc05-4f27-a181-465ca3b10839.png)
+
+## Fig.3
+![Graph-3](https://user-images.githubusercontent.com/72826751/229305951-8b454548-9dba-4cc1-8400-9034b9f66327.png)
+
+## Fig.4
+
+NB The 2002 contract does not directly tie pay to hours worked. While nominally the basic contract is for 40h/week in sociable hours, in practice most rotas are issued at around 43-46 hours weekly with additional night and weekend work. This is compensated for by the allocation of one of several fixed ‘banding’ multipliers, chosen based on overall hours and unsociability.
+
+In contrast, the 2016 contract explicitly predicates pay on hours worked, and with the abolition of the banding system, base pay was increased while the supplements supplied for unsociable hours were significantly reduced. The overall effect was that total pay was similar, but base pay higher.
+
+![Graph-4](https://user-images.githubusercontent.com/72826751/229305955-41d9d8b8-4b1d-4100-a263-1c9661c45eee.png)
+
       
