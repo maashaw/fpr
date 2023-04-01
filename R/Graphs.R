@@ -163,6 +163,9 @@ tabApply <- function(tab, f, x = NULL, out = "tab"){
   # tab - table to work on
   # f   - function to apply, of the form f(tab, row, column, var)
   # x   - control variable to pass to function
+  # out - output mode. Defaults to 'tab' to produce a table of dimensions
+  #       matching the input table; if set to 'DF', returns a dataframe with
+  #       one row per cell containing the return value from function f.
   tab.x <- lengths(tab)[1]  # e.g. cols; Assumes array's rectangular, not ragged
   tab.y <- length(tab)      # e.g. rows;
   outDF <- data.frame()
@@ -209,23 +212,112 @@ Pay <- importTab("RData/Pay.csv")
 Inflation <- importTab("RData/Inflation.csv")
 NROC <- importTab("RData/NROC.csv")
 
+# this data from House of Commons Library publication 7735, "National Minimum Wage Statistics"
+minWage <- data.frame(c(5.52, 5.73, 5.80, 5.93, 6.08, 6.19, 6.31, 6.50, 6.70, 7.20, 7.50, 7.83, 8.21, 8.72, 8.91, 9.50))
+rownames(minWage) <- c(2007:2022)
+colnames(minWage) <- "minWage"
+
+minWage.2022 <- tabApply(minWage, tabInflate, c(2022, "RPI"))
+minWage.2022.DF <- tabApply(minWage.2022, tabDF, out="DF")
+colnames(minWage.2022.DF) <- c("group", "year", "minWage")
+
 payGross <- tabApply(Pay, tabCalcPay)
+
 payGross.2022 <- tabApply(payGross, tabInflate, c(2022, "RPI"))
 payGross.2022.DF <- tabApply(payGross.2022, tabDF, out="DF")
-
 colnames(payGross.2022.DF) <- c("grade", "year", "pay")
 payGross.2022.DF$grade <- factor(payGross.2022.DF$grade, levels = rev(colnames(Pay)))
 
+payGross.2008 <- tabApply(payGross, tabInflate, c(2008, "RPI"))
+payGross.2008.DF <- tabApply(payGross.2008, tabDF, out="DF")
+colnames(payGross.2008.DF) <- c("grade", "year", "pay")
+payGross.2008.DF$grade <- factor(payGross.2008.DF$grade, levels = rev(colnames(Pay)))
+
+annualHours <- 45 * (365.25/7)
+baseHours <- 40 * (365.25/7)
+
+payGross.2022.hourly <- payGross.2022 / annualHours
+payGross.2022.hourly.DF <- tabApply(payGross.2022.hourly, tabDF, out="DF")
+colnames(payGross.2022.hourly.DF) <- c("grade", "year", "pay")
+payGross.2022.hourly.DF$grade <- factor(payGross.2022.hourly.DF$grade, levels = rev(colnames(Pay)))
+
+pay.2022 <- tabApply(Pay, tabInflate, c(2022, "RPI"))
+pay.2022.hourly <- pay.2022 / baseHours
+pay.2022.hourly.DF <- tabApply(pay.2022.hourly, tabDF, out="DF")
+colnames(pay.2022.hourly.DF) <- c("grade", "year", "pay")
+
+#' ## Fig.1: Gross (Pre-Tax) Annual Pay, adjusted to 2022£
 #+ fig.width = 8, fig.height = 8, dpi = 300
 
 ggplot(data=payGross.2022.DF, aes(x=year, y=pay, group=grade)) +
   geom_line(aes(color=grade)) +
-  scale_y_continuous(name = "Gross Pay (Adjusted to 2022£ by RPI Index)", labels = scales::comma) +
+  scale_y_continuous(name = "Gross Annual Pay (Adjusted to 2022£ by RPI Index)", labels = scales::comma) +
   scale_x_discrete(name = "Year") +
   labs(color = "Grade") +
-  ggtitle("Doctors' Pay: 2007 - 2022") +
+  ggtitle("Doctors' Total Pay 2007 - 2022: in 2022£") +
   annotate(geom = "text", x= '2018', y = -Inf, label = "0.5 banding / 45h weekly with 10h unsociable and 1:4 weekends", size = 3, color='grey', vjust = -0.5) +
-  annotate(geom = "text", x = '2017', y = 95000, label = "New Contract", angle=90, vjust = -0.5 ) +
+  annotate(geom = "text", x = '2017', y = +Inf, label = "New Contract", angle=90, vjust = -0.5, hjust = 1.2 ) +
   annotate(geom = "rect", xmin = '2016', xmax = '2017', ymin = -Inf, ymax = Inf, fill = 'orange', alpha = 0.1) +
   geom_vline(xintercept = '2017', color = 'orange') +
   theme_minimal() 
+
+#' ## Fig.2: Gross (Pre-Tax) Annual Pay, adjusted to 2008£
+#+ fig.width = 8, fig.height = 8, dpi = 300
+
+ggplot(data=payGross.2008.DF, aes(x=year, y=pay, group=grade)) +
+  geom_line(aes(color=grade)) +
+  scale_y_continuous(name = "Gross Annual Pay (Adjusted to 2008£ by RPI Index)", labels = scales::comma) +
+  scale_x_discrete(name = "Year") +
+  labs(color = "Grade") +
+  ggtitle("Doctors' Total Pay 2007 - 2022: in 2008£") +
+  annotate(geom = "text", x= '2018', y = -Inf, label = "0.5 banding / 45h weekly with 10h unsociable and 1:4 weekends", size = 3, color='grey', vjust = -0.5) +
+  annotate(geom = "text", x = '2017', y = +Inf, label = "New Contract", angle=90, vjust = -0.5, hjust = 1.2 ) +
+  annotate(geom = "rect", xmin = '2016', xmax = '2017', ymin = -Inf, ymax = Inf, fill = 'orange', alpha = 0.1) +
+  geom_vline(xintercept = '2017', color = 'orange') +
+  theme_minimal()
+
+#' ## Fig.3: Gross (Pre-Tax) Mean Hourly Pay, adjusted to 2022£
+#+ fig.width = 8, fig.height = 8, dpi = 300
+
+ggplot(data=payGross.2022.hourly.DF, aes(x=year, y=pay)) +
+  geom_line(aes(group=grade, color=grade)) +
+  scale_y_continuous(name = "Gross Mean Hourly Pay (Adjusted to 2022£ by RPI Index)", labels = scales::comma, limits=c(15,45)) +
+  scale_x_discrete(name = "Year") +
+  labs(color = "Grade") +
+  ggtitle("Doctors' Total Pay 2007 - 2022: in mean hourly 2022£") +
+  annotate(geom = "text", x = '2017', y = +Inf, label = "New Contract", angle=90, vjust = -0.5, hjust=1.2 ) +
+  annotate(geom = "rect", xmin = '2016', xmax = '2017', ymin = -Inf, ymax = Inf, fill = 'orange', alpha = 0.1) +
+  geom_vline(xintercept = '2017', color = 'orange') +
+  annotate(geom = "text", x= '2018', y = -Inf, label = "0.5 banding / 45h weekly with 10h unsociable and 1:4 weekends", size = 3, color='grey', vjust = -0.5) +
+  theme_minimal()
+
+#' ## Fig.4: Gross (Pre-Tax) Base Hourly Pay, adjusted to 2022£
+#' 
+#' NB The 2002 contract does not directly tie pay to hours worked. While
+#' nominally the basic contract is for 40h/week in sociable hours, in practice 
+#' most rotas are issued at around 43-46 hours weekly with additional night and 
+#' weekend work. This is compensated for by the allocation of one of several 
+#' fixed 'banding' multipliers, chosen based on overall hours and unsociability.
+#' 
+#' In contrast, the 2016 contract explicitly predicates pay on hours worked, and
+#' with the abolition of the banding system, base pay was increased while the
+#' supplements supplied for unsociable hours were significantly reduced.
+#' The overall effect was that total pay was similar, but base pay higher.
+#' 
+#+ fig.width = 8, fig.height = 8, dpi = 300
+
+ggplot(data=pay.2022.hourly.DF, aes(x=year, y=pay)) +
+  geom_line(aes(group=grade, color=grade)) +
+  scale_y_continuous(name = "Gross Hourly Base Pay (Adjusted to 2022£ by RPI Index)", labels = scales::comma, limits=c(0,35)) +
+  scale_x_discrete(name = "Year") +
+  labs(color = "Grade") +
+  ggtitle("Doctors' Base Pay 2007 - 2022: in mean hourly 2022£") +
+  annotate(geom = "text", x = '2017', y = +Inf, label = "New Contract", angle=90, vjust = -0.5, hjust = 1.2 ) +
+  annotate(geom = "rect", xmin = '2016', xmax = '2017', ymin = -Inf, ymax = Inf, fill = 'orange', alpha = 0.1) +
+  geom_vline(xintercept = '2017', color = 'orange') +
+  geom_area(data=minWage.2022.DF, fill = 'red', alpha=0.2, aes(x=year, y=minWage, group=group)) +
+  geom_line(data=minWage.2022.DF, color = 'red', linetype='dashed',linewidth=0.5, aes(x=year, y=minWage, group=group)) +
+  annotate(geom = "text", x= '2020', y = 8.0, label = "National Minimum Wage", size = 3, color='black', vjust = -0.5) +
+  theme_minimal()
+
+
