@@ -51,7 +51,5 @@ In contrast, the 2016 contract explicitly predicates pay on hours worked, and wi
 
 ![Graph-4](https://user-images.githubusercontent.com/72826751/229311541-7f4bae0a-7e74-4d18-8dfc-0baff146d39b.png)
 
-## Fig.5!
+## Fig.5
 ![Graph-5](https://user-images.githubusercontent.com/72826751/229311576-a64b0644-8fe2-4c15-b175-53f0acce17ae.png)
-
-      
