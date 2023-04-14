@@ -227,6 +227,15 @@ Pay <- importTab("RData/Pay.csv")
 Inflation <- importTab("RData/Inflation.csv")
 NROC <- importTab("RData/NROC.csv")
 
+# this data from IPSA (https://www.theipsa.org.uk/mps-pay-and-pensions)
+MPPay <- data.frame(c(NA, NA, NA, 65738, 65738, 65738, 66396, 67060, 74000, 74962, 76011, 77379, 79438, 81932, 81932, 84144))
+rownames(MPPay) <- c(2007:2022)
+colnames(MPPay) <- "MPs"
+
+MPPay.2022 <- tabApply(MPPay, tabInflate, c(2022, "RPI"))
+MPPay.2022.DF <- tabApply(MPPay.2022, tabDF, out="DF")
+colnames(MPPay.2022.DF) <- c("group", "year", "pay")
+
 # this data from House of Commons Library publication 7735, "National Minimum Wage Statistics"
 minWage <- data.frame(c(5.52, 5.73, 5.80, 5.93, 6.08, 6.19, 6.31, 6.50, 6.70, 7.20, 7.50, 7.83, 8.21, 8.72, 8.91, 9.50))
 rownames(minWage) <- c(2007:2022)
